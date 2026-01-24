@@ -18,7 +18,7 @@ export default function SignInPage() {
             email,
             options: {
                 shouldCreateUser: true,
-                emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/chatbox`,
+                emailRedirectTo: `${window.location.origin}/chatbox`,
             },
         });
 
