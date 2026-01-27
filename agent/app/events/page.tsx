@@ -16,6 +16,7 @@ import {
   TruckIcon,
   CakeIcon
 } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
 
 // Type definitions
 interface Event {
@@ -257,6 +258,9 @@ const EventsTable = ({ events }: { events: Event[] }) => {
 
 // Main Events List Page
 export default function EventsListPage() {
+
+  const router = useRouter();
+
   // Dummy data
   const [events] = useState<Event[]>([
     {
@@ -335,7 +339,7 @@ export default function EventsListPage() {
 
   const handleCreateEvent = () => {
     console.log('Create new event');
-    // In a real app: router.push('/events/create')
+    router.push('/events/create');
   };
 
   return (
