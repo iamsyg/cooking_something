@@ -34,6 +34,7 @@ export default function LoginPage() {
 
       // Handle successful login
       const data = await response.json();
+      console.log('Login successful:', data);
       localStorage.setItem('agentAuth', 'true');
       localStorage.setItem('agentEmail', data.email);
       // setLoading(false);
