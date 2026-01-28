@@ -17,21 +17,35 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    // Simulate API call with dummy credentials
-    setTimeout(() => {
-      // Dummy validation
-      if (email === 'agent@tbo.com' && password === 'password123') {
-        // Store auth token in localStorage (in real app, use secure storage)
-        localStorage.setItem('agentAuth', 'true');
-        localStorage.setItem('agentEmail', email);
-        router.push('/dashboard');
-      } else if (!email || !password) {
-        setError('Please enter both email and password');
-      } else {
-        setError('Invalid credentials. Use agent@tbo.com / password123 for demo');
-      }
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if(!response.ok) {
+        const errorData = await response.json();
+        setLoading(false);
+        setError(errorData.message || 'Invalid credentials. Please try again.');
+      } 
+
+      // Handle successful login
+      const data = await response.json();
+      localStorage.setItem('agentAuth', 'true');
+      localStorage.setItem('agentEmail', data.email);
+      // setLoading(false);
+      router.push('/');
+    }
+    catch(error) {
+      console.error('Login error:', error);
+      setError('An unexpected error occurred. Please try again later.');
+    }
+    finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
