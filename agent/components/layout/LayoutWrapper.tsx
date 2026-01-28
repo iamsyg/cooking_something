@@ -5,6 +5,9 @@
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Navbar from "./Header";
+import { useEffect } from "react";
+import { useAppDispatch } from "@/store/hook";
+import { loadAgent } from "@/store/slices/agentSlice";
 
 export default function LayoutWrapper({
   children,
@@ -12,6 +15,13 @@ export default function LayoutWrapper({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  const dispatch = useAppDispatch();
+
+
+  // useEffect(() => {
+  //   dispatch(loadAgent());
+  // }, [dispatch]);
 
   // Hide sidebar and navbar on login page
   if (pathname === "/login") {

@@ -13,6 +13,11 @@ import {
   Cog6ToothIcon,
   ArrowLeftOnRectangleIcon,
 } from '@heroicons/react/24/outline';
+import { useAppSelector } from '@/store/hook';
+import { RootState } from '@/store/store';
+import { useEffect, useState } from 'react';
+import { logoutAgent } from '@/store/slices/agentSlice';
+import { useAppDispatch } from '@/store/hook';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
@@ -26,11 +31,16 @@ const navigation = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const dispatch = useAppDispatch();
+
+  const agent = useAppSelector((state: RootState) => state.agent.agent);
+
+  console.log('Sidebar render, agent:', agent);
 
   const handleLogout = () => {
-    console.log('Logout clicked');
-    // Add your logout logic here
-  };
+dispatch(logoutAgent());
+window.location.href = "/login";
+};
 
   return (
     <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
@@ -79,7 +89,7 @@ export default function Sidebar() {
                 />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                    John Agent
+                    {agent ? `Agent ${agent.name}` : "Loading..."}
                   </p>
                   <p className="text-xs font-medium text-gray-500 group-hover:text-gray-700">
                     View profile
