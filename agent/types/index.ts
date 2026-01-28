@@ -1,4 +1,16 @@
 // types/index.ts
+
+export default interface Agent {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+  last_login_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Group {
   id: string
   name: string

@@ -1,52 +1,33 @@
 // app/login/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BuildingOfficeIcon, LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { useAppDispatch, useAppSelector } from '@/store/hook';
+import { loginAgent } from '@/store/slices/agentSlice';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const { loading, error, isAuthenticated, agent } = useAppSelector((state) => state.agent);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('Logged in agent:', agent);
+      router.push("/");
+    }
+  }, [isAuthenticated, router, agent]);
+
+  const dispatch = useAppDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
+
     e.preventDefault();
-    setError('');
-    setLoading(true);
+    dispatch(loginAgent({ email, password }));
 
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if(!response.ok) {
-        const errorData = await response.json();
-        setLoading(false);
-        setError(errorData.message || 'Invalid credentials. Please try again.');
-      } 
-
-      // Handle successful login
-      const data = await response.json();
-      console.log('Login successful:', data);
-      localStorage.setItem('agentAuth', 'true');
-      localStorage.setItem('agentEmail', data.email);
-      // setLoading(false);
-      router.push('/');
-    }
-    catch(error) {
-      console.error('Login error:', error);
-      setError('An unexpected error occurred. Please try again later.');
-    }
-    finally {
-      setLoading(false);
-    }
   };
 
   return (
