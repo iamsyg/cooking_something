@@ -62,20 +62,23 @@ export const loginAgent = createAsyncThunk<
 export const loadAgent = createAsyncThunk(
     "agent/loadAgent",
     async (_, { rejectWithValue }) => {
-        const res = await fetch("/api/me", {
-            credentials: "include", // VERY IMPORTANT
-        });
+        
+        try {
+        
+            const res = await fetch("/api/me", {
+                credentials: "include", // VERY IMPORTANT
+            });
 
+            if (!res.ok) throw new Error("Unauthorized");
+            const data = await res.json();
 
-        if (!res.ok) throw new Error("Unauthorized");
-
-
-        const data = await res.json();
-
-        return {
-            agent: data.user,
-            accessToken: data.accessToken,
-        };
+            return {
+                agent: data.user,
+                accessToken: data.accessToken,
+            };
+        } catch (err: any) {
+            return rejectWithValue("Failed to load agent");
+        }
     }
 );
 

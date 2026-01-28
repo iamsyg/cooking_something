@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import LayoutWrapper from "@/components/layout/LayoutWrapper";
 import ReduxProvider from "@/store/providers";
-import AuthBootstrap from "@/components/AuthBootstrap";
+// import AuthBootstrap from "@/components/AuthBootstrap";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +22,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ReduxProvider>
-          <AuthBootstrap />
           <LayoutWrapper>{children}</LayoutWrapper>
         </ReduxProvider>
       </body>

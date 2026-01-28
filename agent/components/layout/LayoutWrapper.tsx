@@ -8,6 +8,7 @@ import Navbar from "./Header";
 import { useEffect } from "react";
 import { useAppDispatch } from "@/store/hook";
 import { loadAgent } from "@/store/slices/agentSlice";
+import AuthBootstrap from "../AuthBootstrap";
 
 export default function LayoutWrapper({
   children,
@@ -36,6 +37,7 @@ export default function LayoutWrapper({
         <Navbar />
         <main className="py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            {pathname !== "/login" && <AuthBootstrap />}
             {children}
           </div>
         </main>

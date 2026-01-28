@@ -37,11 +37,11 @@ export default function Sidebar() {
 
   console.log('Sidebar render, agent:', agent);
 
-  const handleLogout = () => {
-dispatch(logoutAgent());
-window.location.href = "/login";
-};
-
+  const handleLogout = async () => {
+    await fetch("/api/logout", { method: "POST" });
+    dispatch(logoutAgent());
+    window.location.href = "/login"; // redirect to login page
+  };
   return (
     <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
       <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
