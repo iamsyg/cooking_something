@@ -15,19 +15,22 @@ export default function LoginPage() {
   const { loading, error, isAuthenticated, agent } = useAppSelector((state) => state.agent);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log('Logged in agent:', agent);
-      router.push("/");
+    if (isAuthenticated && agent) {
+      console.log('✅ Authenticated, redirecting to home...');
+      // Use a small delay to ensure cookies are set
+      setTimeout(() => {
+        router.push("/");
+        // Force a hard navigation to ensure cookies are read
+        window.location.href = "/";
+      }, 100);
     }
-  }, [isAuthenticated, router, agent]);
+  }, [isAuthenticated, agent, router]);
 
   const dispatch = useAppDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
-
     e.preventDefault();
     dispatch(loginAgent({ email, password }));
-
   };
 
   return (

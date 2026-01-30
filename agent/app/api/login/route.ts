@@ -10,7 +10,6 @@ export async function POST(req: Request) {
     const { email, password } = await req.json();
 
     console.log("Login attempt for email:", email);
-    console.log("Password provided:", password);
 
     // 1. Validate input
     if (!email || !password) {
@@ -68,7 +67,7 @@ export async function POST(req: Request) {
     // 7. Remove sensitive fields
     const { password_hash, ...safeAgent } = agent;
 
-    // 8. Set cookies (optional but recommended)
+    // 8. Create response with cookies
     const res = NextResponse.json(
       {
         success: true,
@@ -80,20 +79,26 @@ export async function POST(req: Request) {
       { status: 200 }
     );
 
+    // Set cookies with proper configuration
     res.cookies.set("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax", // Changed from "strict" to "lax" for better compatibility
+      path: '/',
+      maxAge: 60 * 15, // 15 minutes
     });
 
     res.cookies.set("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax", // Changed from "strict" to "lax"
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
     return res;
   } catch (err: any) {
+    console.error("Login error:", err);
     return NextResponse.json(
       {
         success: false,
