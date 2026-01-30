@@ -22,7 +22,7 @@ import { useAppDispatch } from '@/store/hook';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Events', href: '/events', icon: UsersIcon },
-  { name: 'Conversations', href: '/conversations', icon: ChatBubbleLeftRightIcon },
+  // { name: 'Conversations', href: '/conversations', icon: ChatBubbleLeftRightIcon },
   { name: 'Inventory', href: '/inventory', icon: LinkIcon },
   { name: 'Calendar', href: '/calendar', icon: CalendarIcon },
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
