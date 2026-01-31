@@ -125,6 +125,13 @@ export default function CreateEventPage() {
     }));
   }, [startDate, bookingStartDate, dispatch]);
 
+  useEffect(() => {
+    console.log('UPDATED inventory state:', {
+      roomBlocks,
+      inventoryItems,
+      packages
+    });
+  }, [roomBlocks, inventoryItems, packages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -299,26 +306,16 @@ export default function CreateEventPage() {
                 roomBlocks={roomBlocks}
                 inventoryItems={inventoryItems}
                 packages={packages}
-                onRoomBlocksChange={setRoomBlocks}
-                onInventoryItemsChange={setInventoryItems}
-                onPackagesChange={setPackages}
+
+                onRoomBlocksChange={(blocks) => dispatch(setRoomBlocks(blocks))}
+                onInventoryItemsChange={(items) => dispatch(setInventoryItems(items))}
+                onPackagesChange={(pkgs) => dispatch(setPackages(pkgs))}
               />
 
               <div className="flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => {
-                    dispatch(setRoomBlocks([
-                      ...roomBlocks
-                    ]))
-
-                    dispatch(setInventoryItems([
-                      ...inventoryItems
-                    ]))
-
-                    dispatch(setPackages([
-                      ...packages
-                    ]))
                     setStep(1)
                   }}
                   className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
@@ -358,7 +355,10 @@ export default function CreateEventPage() {
               <div className="flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={() => setStep(2)}
+                  onClick={() => {
+
+                    setStep(2)
+                  }}
                   className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
                 >
                   Back
