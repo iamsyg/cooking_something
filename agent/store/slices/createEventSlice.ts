@@ -14,8 +14,8 @@ import type {
 /* Types                                                              */
 /* ------------------------------------------------------------------ */
 
-interface MicrositeConfig {
-    themeLogo?: File | null;
+export interface MicrositeConfig {
+    themeLogoUrl?: string;
     primaryColor: string;
     secondaryColor: string;
     welcomeMessage: string;
@@ -24,7 +24,7 @@ interface MicrositeConfig {
     customDomain?: string;
 }
 
-interface ItineraryActivity {
+export interface ItineraryActivity {
     id: string;
     time: string;
     title: string;
@@ -32,7 +32,7 @@ interface ItineraryActivity {
     location?: string;
 }
 
-interface ItineraryDay {
+export interface ItineraryDay {
     id: string;
     day: number;
     date: string;
@@ -40,7 +40,7 @@ interface ItineraryDay {
     activities: ItineraryActivity[];
 }
 
-interface CreateEventState {
+export interface CreateEventState {
     /* Step 1 (minimal but useful for step 4) */
     eventName: string;
     eventType: EventType;
@@ -97,7 +97,7 @@ const initialState: CreateEventState = {
         showItinerary: true,
         showPackages: true,
         customDomain: '',
-        themeLogo: null,
+        themeLogoUrl: '',
     },
 
     itinerary: [],

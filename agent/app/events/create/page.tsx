@@ -13,35 +13,15 @@ import CreateEventStepFour from '@/components/CreateEventStepFour';
 
 import type { EventType, MiceSubType, InventoryItem, Package, RoomBlock } from '@/types/event';
 
-interface MicrositeConfig {  // 4 and 3
-  themeLogo?: File | null;
-  primaryColor: string;
-  secondaryColor: string;
-  welcomeMessage: string;
-  showItinerary: boolean;
-  showPackages: boolean;
-  customDomain?: string;
-}
-
-interface ItineraryDay { // 4 AND 3
-  id: string;
-  day: number;
-  date: string;
-  title: string;
-  activities: ItineraryActivity[];
-}
-
-interface ItineraryActivity {  // 4 3
-  id: string;
-  time: string;
-  title: string;
-  description: string;
-  location?: string;
-}
+import { useDispatch, useSelector } from 'react-redux';
+import { updateBasicDetails, setCustomFields } from '@/store/slices/createEventSlice';
+import { MicrositeConfig, ItineraryDay } from '@/store/slices/createEventSlice';
+import { RootState } from '@/store/store';
 
 export default function CreateEventPage() {
   const router = useRouter();
-  
+  const dispatch = useDispatch();
+
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [eventType, setEventType] = useState<EventType>('MICE');
   const [miceSubType, setMiceSubType] = useState<MiceSubType>('Conferences');
@@ -53,6 +33,7 @@ export default function CreateEventPage() {
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [attendeeCount, setAttendeeCount] = useState<string>('');
+  const [bookingStartDate, setBookingStartDate] = useState('');
   const [bookingEndDate, setBookingEndDate] = useState('');
 
   // Initialize inventory items, packages, and room blocks
@@ -89,12 +70,12 @@ export default function CreateEventPage() {
   ]);
 
   const [roomBlocks, setRoomBlocks] = useState<RoomBlock[]>([
-    { 
-      id: '1', 
-      hotelName: 'Grand Marina Hotel', 
-      roomType: 'Deluxe Ocean View', 
-      totalRooms: 20, 
-      ratePerNight: 250, 
+    {
+      id: '1',
+      hotelName: 'Grand Marina Hotel',
+      roomType: 'Deluxe Ocean View',
+      totalRooms: 20,
+      ratePerNight: 250,
       amenities: ['WiFi', 'Breakfast', 'Pool Access'],
       locked: true,
       releaseDate: ''
@@ -103,7 +84,7 @@ export default function CreateEventPage() {
 
   // Microsite Configuration
   const [micrositeConfig, setMicrositeConfig] = useState<MicrositeConfig>({
-    themeLogo: null,
+    themeLogoUrl: '',
     primaryColor: '#4F46E5',
     secondaryColor: '#EC4899',
     welcomeMessage: '',
@@ -113,7 +94,11 @@ export default function CreateEventPage() {
   });
 
   // Itinerary
-  const [itinerary, setItinerary] = useState<ItineraryDay[]>([]);
+  // const [itinerary, setItinerary] = useState<ItineraryDay[]>([]);
+
+  const itinerary = useSelector(
+    (state: RootState) => state.createEvent.itinerary
+  );
 
   // Auto-set booking end date when start date changes
   useEffect(() => {
@@ -122,13 +107,13 @@ export default function CreateEventPage() {
       const sevenDaysBefore = new Date(eventStart);
       sevenDaysBefore.setDate(sevenDaysBefore.getDate() - 7);
       const releaseDateStr = sevenDaysBefore.toISOString().split('T')[0];
-      
+
       // Update room blocks with release date
       setRoomBlocks(prev => prev.map(block => ({
         ...block,
         releaseDate: releaseDateStr
       })));
-      
+
       // Set booking end date
       setBookingEndDate(releaseDateStr);
     }
@@ -146,7 +131,7 @@ export default function CreateEventPage() {
       };
       setEventName(`${baseNames[miceSubType]} ${today}`);
     }
-  }, [miceSubType, eventType, eventName]);
+  }, [miceSubType, eventType]);
 
   // Auto-generate welcome message
   useEffect(() => {
@@ -161,7 +146,7 @@ export default function CreateEventPage() {
         welcomeMessage: `Welcome to ${eventName}! We're thrilled to celebrate with you.`
       }));
     }
-  }, [eventType, eventName, miceSubType]);
+  }, [eventType, miceSubType]);
 
   // Generate sample itinerary based on event dates
   useEffect(() => {
@@ -169,12 +154,12 @@ export default function CreateEventPage() {
       const start = new Date(startDate);
       const end = new Date(endDate);
       const dayCount = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      
+
       const newItinerary: ItineraryDay[] = [];
       for (let i = 0; i < dayCount; i++) {
         const currentDate = new Date(start);
         currentDate.setDate(start.getDate() + i);
-        
+
         newItinerary.push({
           id: `day-${i + 1}`,
           day: i + 1,
@@ -183,10 +168,17 @@ export default function CreateEventPage() {
           activities: []
         });
       }
-      
-      setItinerary(newItinerary);
+
+      // setItinerary(newItinerary);
+      dispatch(updateBasicDetails({
+        itinerary: newItinerary
+      }))
     }
   }, [startDate, endDate]);
+
+  if (startDate && !bookingStartDate) {
+    setBookingStartDate(new Date().toISOString().split('T')[0]);
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,7 +200,7 @@ export default function CreateEventPage() {
       micrositeConfig,
       itinerary
     });
-    
+
     alert('Event created successfully! Generating planner and guest links...');
     router.push('/events');
   };
@@ -245,7 +237,7 @@ export default function CreateEventPage() {
           {step === 1 && (
             <div className="rounded-lg border border-gray-200 bg-white p-6">
               <h2 className="mb-6 text-lg font-medium text-gray-900">Basic Information</h2>
-              
+
               <CreateEventStepOne
                 eventType={eventType}
                 miceSubType={miceSubType}
@@ -257,6 +249,7 @@ export default function CreateEventPage() {
                 endDate={endDate}
                 description={description}
                 attendeeCount={attendeeCount}
+                bookingStartDate={bookingStartDate}
                 bookingEndDate={bookingEndDate}
                 onEventTypeChange={setEventType}
                 onMiceSubTypeChange={setMiceSubType}
@@ -268,13 +261,68 @@ export default function CreateEventPage() {
                 onEndDateChange={setEndDate}
                 onDescriptionChange={setDescription}
                 onAttendeeCountChange={setAttendeeCount}
+                onBookingStartDateChange={setBookingStartDate}
                 onBookingEndDateChange={setBookingEndDate}
               />
 
               <div className="mt-8 flex justify-end">
                 <button
                   type="button"
-                  onClick={() => setStep(2)}
+                    onClick={() => {
+                      dispatch(updateBasicDetails({
+                        eventType,
+                        miceSubType: eventType === 'MICE' ? miceSubType : undefined,
+                        eventName,
+                        location,
+                        plannerName,
+                        plannerEmail,
+                        startDate,
+                        endDate,
+                        description,
+                        attendeeCount,
+                        bookingStartDate,
+                        bookingEndDate,
+                      }))
+
+                      if (eventType === 'MICE') {
+                        if(miceSubType === 'Meetings') {
+                          dispatch(setCustomFields([
+                            { id: '1', label: 'NumberOfBreakOutSessions', type: 'number', options: [], value: '', required: false, forType: ['Meetings'] },
+                            { id: '2', label: 'MeetingDuration', type: 'number', options: [], value: '', required: false, forType: ['Meetings'] },
+                          ]));
+                        }
+
+                        else if(miceSubType === 'Incentives') {
+                          dispatch(setCustomFields([
+                            { id: '3', label: 'IncentiveBudgetPerPerson', type: 'number', options: [], value: '', required: false, forType: ['Incentives'] },
+                            { id: '4', label: 'ActivityLevel', type: 'select', options: [], value: '', required: false, forType: ['Incentives'] },
+                          ]));
+                        }
+
+                        else if(miceSubType === 'Conferences') {
+                          dispatch(setCustomFields([
+                            { id: '5', label: 'NumberOfTracks', type: 'number', options: [], value: '',  required: false, forType: ['Conferences'] },
+                            { id: '6', label: 'SpeakerCount', type: 'number', options: [], value: '', required: false, forType: ['Conferences'] },
+                          ]));
+                        }
+
+                        else if(miceSubType === 'Exhibitions') {
+                          dispatch(setCustomFields([
+                            { id: '7', label: 'ExhibitionArea', type: 'number', options: [], value: '', required: false, forType: ['Exhibitions'] },
+                            { id: '8', label: 'BoothCount', type: 'number', options: [], value: '', required: false, forType: ['Exhibitions'] },
+                          ]));
+                        }
+                      }
+
+                      else {
+                        dispatch(updateBasicDetails({
+                          attendeeCount,
+                        }))
+                      }
+                        
+                      setStep(2);
+                    }
+                  }
                   className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                 >
                   Continue to Inventory
@@ -326,7 +374,12 @@ export default function CreateEventPage() {
                 miceSubType={miceSubType}
                 itinerary={itinerary}
                 micrositeConfig={micrositeConfig}
-                onItineraryChange={setItinerary}
+                onItineraryChange={(updatedItinerary) => {
+                  // setItinerary(updatedItinerary);
+                  dispatch(updateBasicDetails({
+                    itinerary: updatedItinerary
+                  }))
+                }}
                 onMicrositeConfigChange={setMicrositeConfig}
               />
 
@@ -354,7 +407,7 @@ export default function CreateEventPage() {
             <div className="space-y-6">
               <div className="rounded-lg border border-gray-200 bg-white p-6">
                 <h2 className="mb-6 text-lg font-medium text-gray-900">Review & Create</h2>
-                
+
                 <CreateEventStepFour
                   eventType={eventType}
                   miceSubType={miceSubType}

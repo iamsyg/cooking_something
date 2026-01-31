@@ -10,19 +10,10 @@ import {
   PresentationChartBarIcon,
   BuildingStorefrontIcon
 } from '@heroicons/react/24/outline';
+import { CustomField } from '@/types/event';
 
 type EventType = 'MICE' | 'Wedding';
 type MiceSubType = 'Meetings' | 'Incentives' | 'Conferences' | 'Exhibitions';
-
-interface CustomField {
-  id: string;
-  label: string;
-  type: 'text' | 'number' | 'date' | 'select' | 'textarea';
-  value: string;
-  options?: string[];
-  required: boolean;
-  forType: MiceSubType[];
-}
 
 interface CreateEventStepOneProps {
   eventType: EventType;
@@ -35,6 +26,7 @@ interface CreateEventStepOneProps {
   endDate: string;
   description: string;
   attendeeCount: string;
+  bookingStartDate: string;
   bookingEndDate: string;
   onEventTypeChange: (type: EventType) => void;
   onMiceSubTypeChange: (subType: MiceSubType) => void;
@@ -46,6 +38,7 @@ interface CreateEventStepOneProps {
   onEndDateChange: (date: string) => void;
   onDescriptionChange: (description: string) => void;
   onAttendeeCountChange: (count: string) => void;
+  onBookingStartDateChange: (date: string) => void;
   onBookingEndDateChange: (date: string) => void;
 }
 
@@ -60,6 +53,7 @@ const CreateEventStepOne: React.FC<CreateEventStepOneProps> = ({
   endDate,
   description,
   attendeeCount,
+  bookingStartDate,
   bookingEndDate,
   onEventTypeChange,
   onMiceSubTypeChange,
@@ -71,6 +65,7 @@ const CreateEventStepOne: React.FC<CreateEventStepOneProps> = ({
   onEndDateChange,
   onDescriptionChange,
   onAttendeeCountChange,
+  onBookingStartDateChange,
   onBookingEndDateChange
 }) => {
   // State for custom fields
@@ -108,6 +103,12 @@ const CreateEventStepOne: React.FC<CreateEventStepOneProps> = ({
       default: return <BuildingOfficeIcon className="h-6 w-6" />;
     }
   };
+
+  useEffect(() => {
+  if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+    onEndDateChange('');
+  }
+}, [startDate, endDate]);
 
   const getCurrentFields = () => {
     return customFields.filter(field => field.forType.includes(miceSubType));
@@ -387,21 +388,37 @@ const CreateEventStepOne: React.FC<CreateEventStepOneProps> = ({
         {/* Wedding Specific Fields */}
         {eventType === 'Wedding' && (
           <div className="col-span-2">
-            <label htmlFor="guestCount" className="block text-sm font-medium text-gray-700">
-              Estimated Guest Count *
+            <label htmlFor="attendeeCount" className="block text-sm font-medium text-gray-700">
+              Estimated Attendee Count *
             </label>
             <input
               type="number"
-              id="guestCount"
+              id="attendeeCount"
               required
+              value={attendeeCount}
+              onChange={(e) => onAttendeeCountChange(e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
               placeholder="e.g., 150"
               min="1"
+              
             />
           </div>
         )}
 
         {/* Booking Validity Period */}
+        <div>
+          <label htmlFor="bookingStartDate" className="block text-sm font-medium text-gray-700">
+            Booking Window Opens On
+          </label>
+          <input
+            type="date"
+            id="bookingStartDate"
+            value={bookingStartDate}
+            onChange={(e) => onBookingStartDateChange(e.target.value)}
+            className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+          />
+          <p className="mt-1 text-xs text-gray-500">Guests can book from this date (defaults to 7 days before event)</p>
+        </div>
         <div>
           <label htmlFor="bookingEndDate" className="block text-sm font-medium text-gray-700">
             Booking Window Closes On
