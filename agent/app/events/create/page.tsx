@@ -11,139 +11,83 @@ import CreateEventStepTwo from '@/components/CreateEventStepTwo';
 import CreateEventStepThree from '@/components/CreateEventStepThree';
 import CreateEventStepFour from '@/components/CreateEventStepFour';
 
-import type { EventType, MiceSubType, InventoryItem, Package, RoomBlock } from '@/types/event';
-
 import { useDispatch, useSelector } from 'react-redux';
-import { updateBasicDetails, setCustomFields } from '@/store/slices/createEventSlice';
-import { MicrositeConfig, ItineraryDay } from '@/store/slices/createEventSlice';
+import { updateBasicDetails, setCustomFields, setRoomBlocks, setInventoryItems, setPackages, setItinerary, updateMicrositeConfig } from '@/store/slices/createEventSlice';
+import { MicrositeConfig, ItineraryDay, updateCustomField } from '@/store/slices/createEventSlice';
 import { RootState } from '@/store/store';
+import { CUSTOM_FIELDS_CONFIG } from '@/config/customFields';
 
 export default function CreateEventPage() {
   const router = useRouter();
   const dispatch = useDispatch();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
-  const [eventType, setEventType] = useState<EventType>('MICE');
-  const [miceSubType, setMiceSubType] = useState<MiceSubType>('Conferences');
-  const [eventName, setEventName] = useState('');
-  const [plannerName, setPlannerName] = useState('');
-  const [plannerEmail, setPlannerEmail] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [location, setLocation] = useState('');
-  const [description, setDescription] = useState('');
-  const [attendeeCount, setAttendeeCount] = useState<string>('');
-  const [bookingStartDate, setBookingStartDate] = useState('');
-  const [bookingEndDate, setBookingEndDate] = useState('');
 
-  // Initialize inventory items, packages, and room blocks
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([
-    { id: '1', name: 'Deluxe Room', type: 'hotel', description: 'Ocean view room with king bed', quantity: 20, unitPrice: 250, pricingModel: 'perRoom', included: true, isOptionalUpgrade: false, requiredFor: ['Meetings', 'Incentives', 'Conferences', 'Exhibitions'] },
-    { id: '2', name: 'Airport Transfer', type: 'transport', description: 'Round trip airport transfers', quantity: 50, unitPrice: 75, pricingModel: 'perPerson', included: true, isOptionalUpgrade: false, requiredFor: ['Meetings', 'Incentives', 'Conferences', 'Exhibitions'] },
-    { id: '3', name: 'Breakfast Buffet', type: 'catering', description: 'Daily breakfast buffet', quantity: 50, unitPrice: 25, pricingModel: 'perPerson', included: true, isOptionalUpgrade: false, requiredFor: ['Meetings', 'Incentives', 'Conferences', 'Exhibitions'] },
-    { id: '4', name: 'Premium Room Upgrade', type: 'hotel', description: 'Upgrade to suite with balcony', quantity: 10, unitPrice: 100, pricingModel: 'perRoom', included: false, isOptionalUpgrade: true, upgradePrice: 100, requiredFor: ['Meetings', 'Incentives', 'Conferences', 'Exhibitions'] },
-    { id: '5', name: 'Spa Package', type: 'gift', description: '60-minute massage and spa access', quantity: 30, unitPrice: 150, pricingModel: 'perPerson', included: false, isOptionalUpgrade: true, upgradePrice: 150, requiredFor: ['Incentives'] },
-    { id: '6', name: 'Audio Visual Package', type: 'av', description: 'Projector, screens, microphones', quantity: 5, unitPrice: 500, pricingModel: 'perDay', included: false, isOptionalUpgrade: false, requiredFor: ['Meetings', 'Conferences'] },
-    { id: '7', name: 'High-Speed Internet', type: 'internet', description: 'Dedicated conference WiFi', quantity: 1, unitPrice: 1000, pricingModel: 'package', included: true, isOptionalUpgrade: false, requiredFor: ['Meetings', 'Conferences'] },
-    { id: '8', name: 'Exhibition Booth', type: 'booth', description: 'Standard 10x10 exhibition booth', quantity: 20, unitPrice: 1200, pricingModel: 'perBooth', included: false, isOptionalUpgrade: false, requiredFor: ['Exhibitions'] },
-  ]);
+  const state = useSelector((state: RootState) => state.createEvent);
 
-  const [packages, setPackages] = useState<Package[]>([
-    {
-      id: '1',
-      name: 'Standard Package',
-      description: 'Room + Breakfast + Airport Transfer',
-      basePrice: 350,
-      includedServices: ['1', '2', '3'],
-      optionalUpgrades: ['4', '5'],
-      isDefault: true
-    },
-    {
-      id: '2',
-      name: 'Premium Package',
-      description: 'All Standard amenities + Room Upgrade + Spa',
-      basePrice: 600,
-      includedServices: ['1', '2', '3', '4', '5'],
-      optionalUpgrades: [],
-      isDefault: false
-    }
-  ]);
-
-  const [roomBlocks, setRoomBlocks] = useState<RoomBlock[]>([
-    {
-      id: '1',
-      hotelName: 'Grand Marina Hotel',
-      roomType: 'Deluxe Ocean View',
-      totalRooms: 20,
-      ratePerNight: 250,
-      amenities: ['WiFi', 'Breakfast', 'Pool Access'],
-      locked: true,
-      releaseDate: ''
-    },
-  ]);
-
-  // Microsite Configuration
-  const [micrositeConfig, setMicrositeConfig] = useState<MicrositeConfig>({
-    themeLogoUrl: '',
-    primaryColor: '#4F46E5',
-    secondaryColor: '#EC4899',
-    welcomeMessage: '',
-    showItinerary: true,
-    showPackages: true,
-    customDomain: ''
-  });
-
-  // Itinerary
-  // const [itinerary, setItinerary] = useState<ItineraryDay[]>([]);
-
-  const itinerary = useSelector(
-    (state: RootState) => state.createEvent.itinerary
-  );
+  const {
+    eventType,
+    miceSubType,
+    eventName,
+    location,
+    plannerName,
+    plannerEmail,
+    startDate,
+    endDate,
+    description,
+    attendeeCount,
+    bookingStartDate,
+    bookingEndDate,
+    roomBlocks,
+    inventoryItems,
+    packages,
+    itinerary,
+    micrositeConfig,
+    customFields
+  } = state;
 
   // Auto-set booking end date when start date changes
   useEffect(() => {
-    if (startDate) {
-      const eventStart = new Date(startDate);
-      const sevenDaysBefore = new Date(eventStart);
-      sevenDaysBefore.setDate(sevenDaysBefore.getDate() - 7);
-      const releaseDateStr = sevenDaysBefore.toISOString().split('T')[0];
+    if (!startDate || roomBlocks.length === 0) return;
 
-      // Update room blocks with release date
-      setRoomBlocks(prev => prev.map(block => ({
-        ...block,
-        releaseDate: releaseDateStr
-      })));
+    const eventStart = new Date(startDate);
+    const releaseDate = new Date(eventStart);
+    releaseDate.setDate(releaseDate.getDate() - 7);
+    const releaseDateStr = releaseDate.toISOString().split('T')[0];
 
-      // Set booking end date
-      setBookingEndDate(releaseDateStr);
-    }
-  }, [startDate]);
+    const needsUpdate = roomBlocks.some(
+      block => block.releaseDate !== releaseDateStr
+    );
 
-  // Auto-generate event name
-  useEffect(() => {
-    if (eventType === 'MICE' && !eventName) {
-      const today = new Date().getFullYear();
-      const baseNames: Record<MiceSubType, string> = {
-        'Meetings': 'Annual Corporate Meeting',
-        'Incentives': 'Employee Incentive Trip',
-        'Conferences': 'Industry Conference',
-        'Exhibitions': 'Trade Show Exhibition'
-      };
-      setEventName(`${baseNames[miceSubType]} ${today}`);
-    }
-  }, [miceSubType, eventType]);
+    if (!needsUpdate) return;
+
+    dispatch(
+      setRoomBlocks(
+        roomBlocks.map(block => ({
+          ...block,
+          releaseDate: releaseDateStr
+        }))
+      )
+    );
+  }, [startDate, roomBlocks, dispatch]);
+
 
   // Auto-generate welcome message
   useEffect(() => {
     if (eventType === 'MICE' && eventName) {
-      setMicrositeConfig(prev => ({
-        ...prev,
-        welcomeMessage: `Welcome to ${eventName}! We're excited to have you join us for this ${miceSubType.toLowerCase()} event.`
+
+      dispatch(updateBasicDetails({
+        micrositeConfig: {
+          ...micrositeConfig,
+          welcomeMessage: `Welcome to ${eventName}! We're excited to have you join us for this ${miceSubType?.toLowerCase()} event.`
+        }
       }));
     } else if (eventType === 'Wedding' && eventName) {
-      setMicrositeConfig(prev => ({
-        ...prev,
-        welcomeMessage: `Welcome to ${eventName}! We're thrilled to celebrate with you.`
+      dispatch(updateBasicDetails({
+        micrositeConfig: {
+          ...micrositeConfig,
+          welcomeMessage: `Welcome to ${eventName}! We're thrilled to celebrate with you.`
+        }
       }));
     }
   }, [eventType, miceSubType]);
@@ -169,16 +113,18 @@ export default function CreateEventPage() {
         });
       }
 
-      // setItinerary(newItinerary);
-      dispatch(updateBasicDetails({
-        itinerary: newItinerary
-      }))
+      dispatch(setItinerary(newItinerary));
     }
   }, [startDate, endDate]);
 
-  if (startDate && !bookingStartDate) {
-    setBookingStartDate(new Date().toISOString().split('T')[0]);
-  }
+  useEffect(() => {
+    if (!startDate || bookingStartDate) return;
+
+    dispatch(updateBasicDetails({
+      bookingStartDate: new Date().toISOString().split('T')[0]
+    }));
+  }, [startDate, bookingStartDate, dispatch]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,88 +186,100 @@ export default function CreateEventPage() {
 
               <CreateEventStepOne
                 eventType={eventType}
-                miceSubType={miceSubType}
+                miceSubType={miceSubType!}
                 eventName={eventName}
                 location={location}
                 plannerName={plannerName}
                 plannerEmail={plannerEmail}
                 startDate={startDate}
                 endDate={endDate}
-                description={description}
-                attendeeCount={attendeeCount}
-                bookingStartDate={bookingStartDate}
-                bookingEndDate={bookingEndDate}
-                onEventTypeChange={setEventType}
-                onMiceSubTypeChange={setMiceSubType}
-                onEventNameChange={setEventName}
-                onLocationChange={setLocation}
-                onPlannerNameChange={setPlannerName}
-                onPlannerEmailChange={setPlannerEmail}
-                onStartDateChange={setStartDate}
-                onEndDateChange={setEndDate}
-                onDescriptionChange={setDescription}
-                onAttendeeCountChange={setAttendeeCount}
-                onBookingStartDateChange={setBookingStartDate}
-                onBookingEndDateChange={setBookingEndDate}
+                description={description ? description : ''}
+                attendeeCount={attendeeCount ? attendeeCount : ''}
+                bookingStartDate={bookingStartDate ? bookingStartDate : ''}
+                bookingEndDate={bookingEndDate ? bookingEndDate : ''}
+                customFields={customFields}
+
+                onCustomFieldChange={(id, value) =>
+                  dispatch(updateCustomField({ id, data: { value } }))
+                }
+
+                onEventTypeChange={(type) =>
+                  dispatch(updateBasicDetails({ eventType: type }))
+                }
+
+                onMiceSubTypeChange={(subType) => {
+                  dispatch(updateBasicDetails({ miceSubType: subType }));
+
+                  if (customFields.length === 0) {
+                    dispatch(
+                      setCustomFields(
+                        CUSTOM_FIELDS_CONFIG[subType].map(field => ({
+                          ...field,
+                          value: ''
+                        }))
+                      )
+                    );
+                  }
+                }}
+
+                onEventNameChange={(v) => dispatch(updateBasicDetails({ eventName: v }))}
+                onLocationChange={(v) => dispatch(updateBasicDetails({ location: v }))}
+                onPlannerNameChange={(v) => dispatch(updateBasicDetails({ plannerName: v }))}
+                onPlannerEmailChange={(v) => dispatch(updateBasicDetails({ plannerEmail: v }))}
+                onStartDateChange={(v) => dispatch(updateBasicDetails({ startDate: v }))}
+                onEndDateChange={(v) => dispatch(updateBasicDetails({ endDate: v }))}
+                onDescriptionChange={(v) => dispatch(updateBasicDetails({ description: v }))}
+                onAttendeeCountChange={(v) => dispatch(updateBasicDetails({ attendeeCount: v }))}
+                onBookingStartDateChange={(v) =>
+                  dispatch(updateBasicDetails({ bookingStartDate: v }))
+                }
+                onBookingEndDateChange={(v) =>
+                  dispatch(updateBasicDetails({ bookingEndDate: v }))
+                }
               />
 
               <div className="mt-8 flex justify-end">
                 <button
                   type="button"
-                    onClick={() => {
-                      dispatch(updateBasicDetails({
-                        eventType,
-                        miceSubType: eventType === 'MICE' ? miceSubType : undefined,
-                        eventName,
-                        location,
-                        plannerName,
-                        plannerEmail,
-                        startDate,
-                        endDate,
-                        description,
-                        attendeeCount,
-                        bookingStartDate,
-                        bookingEndDate,
-                      }))
+                  onClick={() => {
+                    dispatch(updateBasicDetails({
+                      eventType,
+                      miceSubType: eventType === 'MICE' ? miceSubType : undefined,
+                      eventName,
+                      location,
+                      plannerName,
+                      plannerEmail,
+                      startDate,
+                      endDate,
+                      description,
+                      attendeeCount,
+                      bookingStartDate,
+                      bookingEndDate,
+                    }))
 
-                      if (eventType === 'MICE') {
-                        if(miceSubType === 'Meetings') {
-                          dispatch(setCustomFields([
-                            { id: '1', label: 'NumberOfBreakOutSessions', type: 'number', options: [], value: '', required: false, forType: ['Meetings'] },
-                            { id: '2', label: 'MeetingDuration', type: 'number', options: [], value: '', required: false, forType: ['Meetings'] },
-                          ]));
-                        }
 
-                        else if(miceSubType === 'Incentives') {
-                          dispatch(setCustomFields([
-                            { id: '3', label: 'IncentiveBudgetPerPerson', type: 'number', options: [], value: '', required: false, forType: ['Incentives'] },
-                            { id: '4', label: 'ActivityLevel', type: 'select', options: [], value: '', required: false, forType: ['Incentives'] },
-                          ]));
-                        }
+                    dispatch(updateBasicDetails({
+                      attendeeCount,
+                    }))
 
-                        else if(miceSubType === 'Conferences') {
-                          dispatch(setCustomFields([
-                            { id: '5', label: 'NumberOfTracks', type: 'number', options: [], value: '',  required: false, forType: ['Conferences'] },
-                            { id: '6', label: 'SpeakerCount', type: 'number', options: [], value: '', required: false, forType: ['Conferences'] },
-                          ]));
-                        }
+                    console.log('Dispatched basic details to store');
+                    console.log('Current store state:', {
+                      eventType,
+                      miceSubType: eventType === 'MICE' ? miceSubType : undefined,
+                      eventName,
+                      location,
+                      plannerName,
+                      plannerEmail,
+                      startDate,
+                      endDate,
+                      description,
+                      attendeeCount,
+                      bookingStartDate,
+                      bookingEndDate,
+                    });
 
-                        else if(miceSubType === 'Exhibitions') {
-                          dispatch(setCustomFields([
-                            { id: '7', label: 'ExhibitionArea', type: 'number', options: [], value: '', required: false, forType: ['Exhibitions'] },
-                            { id: '8', label: 'BoothCount', type: 'number', options: [], value: '', required: false, forType: ['Exhibitions'] },
-                          ]));
-                        }
-                      }
-
-                      else {
-                        dispatch(updateBasicDetails({
-                          attendeeCount,
-                        }))
-                      }
-                        
-                      setStep(2);
-                    }
+                    setStep(2);
+                  }
                   }
                   className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                 >
@@ -349,7 +307,20 @@ export default function CreateEventPage() {
               <div className="flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
+                  onClick={() => {
+                    dispatch(setRoomBlocks([
+                      ...roomBlocks
+                    ]))
+
+                    dispatch(setInventoryItems([
+                      ...inventoryItems
+                    ]))
+
+                    dispatch(setPackages([
+                      ...packages
+                    ]))
+                    setStep(1)
+                  }}
                   className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
                 >
                   Back
@@ -376,11 +347,12 @@ export default function CreateEventPage() {
                 micrositeConfig={micrositeConfig}
                 onItineraryChange={(updatedItinerary) => {
                   // setItinerary(updatedItinerary);
-                  dispatch(updateBasicDetails({
-                    itinerary: updatedItinerary
-                  }))
+                  dispatch(setItinerary(updatedItinerary));
                 }}
-                onMicrositeConfigChange={setMicrositeConfig}
+                onMicrositeConfigChange={(updatedConfig) => {
+                  // setMicrositeConfig(updatedConfig);
+                  dispatch(updateMicrositeConfig(updatedConfig));
+                }}
               />
 
               <div className="flex items-center justify-between">

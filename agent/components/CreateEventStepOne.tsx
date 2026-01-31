@@ -28,6 +28,8 @@ interface CreateEventStepOneProps {
   attendeeCount: string;
   bookingStartDate: string;
   bookingEndDate: string;
+  customFields: CustomField[];
+  onCustomFieldChange: (id: string, value: string) => void;
   onEventTypeChange: (type: EventType) => void;
   onMiceSubTypeChange: (subType: MiceSubType) => void;
   onEventNameChange: (name: string) => void;
@@ -55,6 +57,8 @@ const CreateEventStepOne: React.FC<CreateEventStepOneProps> = ({
   attendeeCount,
   bookingStartDate,
   bookingEndDate,
+  customFields,
+  onCustomFieldChange,
   onEventTypeChange,
   onMiceSubTypeChange,
   onEventNameChange,
@@ -68,17 +72,6 @@ const CreateEventStepOne: React.FC<CreateEventStepOneProps> = ({
   onBookingStartDateChange,
   onBookingEndDateChange
 }) => {
-  // State for custom fields
-  const [customFields, setCustomFields] = useState<CustomField[]>([
-    { id: '1', label: 'Number of Breakout Sessions', type: 'number', value: '', forType: ['Meetings'], required: true },
-    { id: '2', label: 'Meeting Duration (days)', type: 'number', value: '', forType: ['Meetings'], required: true },
-    { id: '3', label: 'Incentive Budget per Person', type: 'number', value: '', forType: ['Incentives'], required: true },
-    { id: '4', label: 'Activity Level', type: 'select', value: '', options: ['Low', 'Medium', 'High'], forType: ['Incentives'], required: true },
-    { id: '5', label: 'Number of Tracks', type: 'number', value: '', forType: ['Conferences'], required: true },
-    { id: '6', label: 'Speaker Count', type: 'number', value: '', forType: ['Conferences'], required: true },
-    { id: '7', label: 'Exhibition Area (sq ft)', type: 'number', value: '', forType: ['Exhibitions'], required: true },
-    { id: '8', label: 'Booth Count', type: 'number', value: '', forType: ['Exhibitions'], required: true },
-  ]);
 
   // Auto-calculate meeting duration when start and end dates are set
   useEffect(() => {
@@ -86,11 +79,9 @@ const CreateEventStepOne: React.FC<CreateEventStepOneProps> = ({
       const start = new Date(startDate);
       const end = new Date(endDate);
       const dayCount = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      
-      // Update the meeting duration field
-      setCustomFields(prev => prev.map(field =>
-        field.id === '2' ? { ...field, value: dayCount.toString() } : field
-      ));
+
+      onCustomFieldChange('2', dayCount.toString());
+
     }
   }, [startDate, endDate, miceSubType]);
 
@@ -112,12 +103,6 @@ const CreateEventStepOne: React.FC<CreateEventStepOneProps> = ({
 
   const getCurrentFields = () => {
     return customFields.filter(field => field.forType.includes(miceSubType));
-  };
-
-  const handleCustomFieldChange = (id: string, value: string) => {
-    setCustomFields(prev => prev.map(field =>
-      field.id === id ? { ...field, value } : field
-    ));
   };
 
   // Auto-generate placeholder text for event name
@@ -152,6 +137,10 @@ const CreateEventStepOne: React.FC<CreateEventStepOneProps> = ({
   const getFieldValue = (id: string): string => {
     const field = customFields.find(f => f.id === id);
     return field?.value || '';
+  };
+
+  const handleCustomFieldChange = (id: string, value: string) => {
+    onCustomFieldChange(id, value);
   };
 
   return (
