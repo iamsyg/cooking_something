@@ -132,6 +132,13 @@ export default function CreateEventPage() {
       packages
     });
   }, [roomBlocks, inventoryItems, packages]);
+  
+  useEffect(() => {
+    console.log('UPDATED microsite & itinerary state:', {
+      micrositeConfig,
+      itinerary
+    });
+  }, [micrositeConfig, itinerary]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
